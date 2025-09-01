@@ -9,29 +9,33 @@ body { font-family:'Poppins', sans-serif; margin:0; padding:0; background:#f0f4f
 header { background:#4a90e2; color:#fff; padding:20px; text-align:center; font-size:28px; font-weight:600; }
 main { display:flex; justify-content:center; padding:20px; }
 .create-quiz-container {
-    width:100%; max-width:700px; background:#fff; border-radius:20px;
-    padding:30px; box-shadow:0 8px 20px rgba(0,0,0,0.2);
+    width:100%; max-width:750px;
+    background:#fff; border-radius:20px; padding:30px;
+    box-shadow:0 12px 25px rgba(0,0,0,0.2);
 }
 .create-quiz-container h2 { text-align:center; margin-bottom:25px; }
 input[type="text"], select {
     width:100%; padding:12px; margin-bottom:12px; border-radius:8px; border:1px solid #ccc; font-size:16px;
 }
 .question-block {
-    background:linear-gradient(135deg,#6a11cb,#2575fc); color:#fff; padding:20px;
-    border-radius:12px; margin-bottom:15px; position:relative; animation:fadeIn 0.5s forwards;
+    background:linear-gradient(135deg,#6a11cb,#2575fc);
+    color:#fff; padding:20px; border-radius:12px;
+    margin-bottom:15px; position:relative; animation:fadeIn 0.5s forwards;
 }
 .answers-container { display:flex; flex-direction:column; gap:5px; margin-bottom:10px; }
 .hide { display:none; }
 .card-btn {
-    background:#28a745; color:#fff; border:none; padding:12px 20px;
+    background:#28a745; color:#fff; border:none; padding:14px 22px;
     border-radius:8px; cursor:pointer; font-weight:600; transition:0.3s; margin-top:10px;
 }
 .card-btn:hover { background:#218838; transform:scale(1.05); }
+.card-btn:active { transform:scale(0.95); }
 .remove-question-btn {
     position:absolute; top:10px; right:10px; background:#ff3b2d; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; color:#fff; font-weight:600;
 }
 .card-animate { opacity:0; transform:translateY(20px); animation:fadeIn 0.5s forwards; }
 @keyframes fadeIn { to { opacity:1; transform:translateY(0); } }
+.questions-count { text-align:right; font-weight:600; margin-bottom:10px; color:#333; }
 </style>
 </head>
 <body>
@@ -41,6 +45,7 @@ input[type="text"], select {
     <h2>Criar Quiz</h2>
     <form id="quiz-form">
         <input type="text" id="quiz-name" placeholder="Nome do Quiz" required>
+        <div class="questions-count">Perguntas: <span id="questions-number">0</span></div>
         <div id="questions-container"></div>
         <button type="button" class="card-btn" id="add-question-btn">Adicionar Pergunta</button>
         <button type="submit" class="card-btn">Salvar Quiz</button>
@@ -52,14 +57,17 @@ input[type="text"], select {
 const addQuestionBtn = document.getElementById('add-question-btn');
 const questionsContainer = document.getElementById('questions-container');
 const quizForm = document.getElementById('quiz-form');
+const questionsNumber = document.getElementById('questions-number');
 let questionCount = 0;
+
+function updateQuestionsCount() { questionsNumber.innerText = questionCount; }
 
 function createQuestionBlock() {
     questionCount++;
+    updateQuestionsCount();
     const block = document.createElement('div');
     block.classList.add('question-block');
     block.dataset.id = questionCount;
-
     block.innerHTML = `
         <label>Pergunta ${questionCount}:</label>
         <input type="text" placeholder="Digite a pergunta" required>
@@ -89,6 +97,8 @@ function createQuestionBlock() {
 
     block.querySelector('.remove-question-btn').addEventListener('click', () => {
         block.remove();
+        questionCount--;
+        updateQuestionsCount();
     });
 }
 

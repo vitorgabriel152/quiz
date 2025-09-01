@@ -3,30 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Master</title>
-<link rel="stylesheet" href="style.css">
+<title>Quiz Master - Início</title>
+<style>
+body { font-family:'Poppins', sans-serif; margin:0; padding:0; background:#f0f4f8; display:flex; flex-direction:column; min-height:100vh; }
+header { background:#4a90e2; color:#fff; padding:20px; text-align:center; font-size:28px; font-weight:600; }
+main { flex:1; display:flex; justify-content:center; align-items:center; flex-direction:column; gap:30px; padding:20px; }
+.card { background:linear-gradient(135deg,#6a11cb,#2575fc); color:#fff; padding:40px 60px; border-radius:20px; text-align:center; text-decoration:none; box-shadow:0 8px 20px rgba(0,0,0,0.2); transition:0.4s; font-size:20px; width:300px; }
+.card:hover { transform:translateY(-10px); box-shadow:0 12px 25px rgba(0,0,0,0.3); }
+.card p { font-size:14px; margin-top:10px; }
+footer { background:#4a90e2; color:#fff; padding:10px 20px; text-align:center; font-weight:600; }
+</style>
 </head>
 <body>
-<header>
-    <div class="logo">Quiz Master</div>
-</header>
-
+<header>Quiz Master</header>
 <main>
-<section class="cards-container">
-    <a href="create-advanced.html" class="card">
-        <h2>Criar Quiz</h2>
-        <p>Monte suas perguntas personalizadas.</p>
-    </a>
-    <a href="select.html" class="card">
-        <h2>Jogar Quiz</h2>
-        <p>Escolha um quiz salvo e jogue.</p>
-    </a>
-</section>
+<a href="create-advanced.html" class="card">
+    Criar Quiz<br><p>Monte suas perguntas personalizadas</p>
+</a>
+<a href="select.html" class="card">
+    Jogar Quiz<br><p>Escolha um quiz salvo</p>
+</a>
 </main>
-
-<footer>
-<p>© 2025 Quiz Master. Todos os direitos reservados.</p>
-</footer>
-<script src="index.js"></script>
+<footer>© 2025 Quiz Master</footer>
 </body>
 </html>

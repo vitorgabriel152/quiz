@@ -3,195 +3,108 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Visual - Quiz Master</title>
+<title>Jogar Quiz - Quiz Master</title>
 <style>
-body { font-family: 'Poppins', sans-serif; margin:0; padding:0; background:#f0f4f8; }
-header, footer { background:#4a90e2; color:#fff; padding:10px 20px; text-align:center; font-weight:600; }
-.logo { font-size:28px; }
-.quiz-container { max-width:700px; margin:40px auto; padding:20px; position:relative; }
-#quiz-question, #quiz-result { background:#fff; padding:30px; border-radius:15px; box-shadow:0 8px 20px rgba(0,0,0,0.2); text-align:center; }
-#question-text { font-size:22px; margin-bottom:25px; }
-.btn-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
-.btn-grid button { padding:15px; font-size:16px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); transition:0.3s; cursor:pointer; }
-.btn-grid button.correct { background:#28a745; color:#fff; }
-.btn-grid button.wrong { background:#dc3545; color:#fff; }
-.timer-bar { width:100%; height:12px; background:#ddd; border-radius:10px; margin-bottom:20px; overflow:hidden; }
-#timer-bar-fill { width:100%; height:100%; background:linear-gradient(90deg,#fcb045,#fd1d1d,#833ab4); transition:width 0.1s linear; }
-.card-animate { opacity:0; transform:translateY(30px); animation:fadeIn 0.5s forwards; }
-@keyframes fadeIn { to { opacity:1; transform:translateY(0); } }
-#ranking-list { list-style:none; padding:0; margin-top:20px; text-align:left; }
-#ranking-list li { background:#f1f3f6; padding:10px; border-radius:8px; margin-bottom:10px; font-weight:600; animation:fadeIn 0.5s forwards; }
-.confetti { position:fixed; font-size:24px; z-index:1000; pointer-events:none; animation:fall 2s linear forwards; }
-@keyframes fall { 100% { transform:translateY(100vh) rotate(360deg); opacity:0; } }
-.card-btn { background:#ff6f61; color:#fff; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:600; transition:0.3s; }
-.card-btn:hover { background:#ff3b2d; transform:scale(1.05); }
+body { font-family:'Poppins',sans-serif; margin:0; padding:0; background:#f0f4f8; display:flex; flex-direction:column; align-items:center; }
+header { background:#4a90e2; color:#fff; padding:20px; text-align:center; font-size:28px; font-weight:600; width:100%; position:relative; }
+#exit-quiz { position:absolute; right:20px; top:15px; background:#ff3b2d; color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; }
+main { flex:1; width:100%; max-width:700px; padding:20px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+.question-card { background:#fff; width:100%; padding:25px; border-radius:15px; box-shadow:0 8px 20px rgba(0,0,0,0.2); text-align:center; animation:fadeIn 0.5s forwards; }
+.answer-btn { display:block; width:100%; margin:8px 0; padding:12px; border-radius:10px; border:none; cursor:pointer; font-weight:600; transition:0.3s; }
+.correct { background:#28a745; color:#fff; }
+.wrong { background:#ff3b2d; color:#fff; }
+#timer { font-weight:600; color:#333; margin-bottom:10px; }
+#confetti { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+@keyframes fadeIn { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
 </style>
 </head>
 <body>
 <header>
-    <div class="logo">Quiz Master</div>
+Quiz
+<button id="exit-quiz">Sair</button>
 </header>
-
 <main>
-<section class="quiz-container">
-    <div id="quiz-question" class="card-animate">
-        <div class="timer-bar">
-            <div id="timer-bar-fill"></div>
-        </div>
-        <h2 id="question-text"></h2>
-        <div id="answer-buttons" class="btn-grid"></div>
-    </div>
-    <div id="quiz-result" class="card-animate" style="display:none;">
-        <h2>Quiz Finalizado!</h2>
-        <p id="score-text"></p>
-        <h3>Ranking</h3>
-        <ul id="ranking-list"></ul>
-        <button id="restart-btn" class="card-btn">Jogar Novamente</button>
-    </div>
-</section>
+<div id="timer"></div>
+<div id="question-container"></div>
+<div id="confetti"></div>
 </main>
 
-<footer>
-<p>© 2025 Quiz Master. Todos os direitos reservados.</p>
-</footer>
-
 <script>
-const currentQuizIdx = localStorage.getItem('currentQuiz');
-const quizzes = JSON.parse(localStorage.getItem('quizzes'));
-if(currentQuizIdx === null || !quizzes || quizzes.length === 0){
-    alert('Nenhum quiz disponível.');
-    window.location.href = 'index.html';
-}
-const quizData = quizzes[currentQuizIdx].questions;
+const exitBtn = document.getElementById('exit-quiz');
+exitBtn.addEventListener('click', ()=>{ if(confirm('Deseja sair do quiz?')) window.location.href='index.html'; });
 
-const questionText = document.getElementById('question-text');
-const answerButtons = document.getElementById('answer-buttons');
-const quizQuestion = document.getElementById('quiz-question');
-const quizResult = document.getElementById('quiz-result');
-const scoreText = document.getElementById('score-text');
-const rankingList = document.getElementById('ranking-list');
-const restartBtn = document.getElementById('restart-btn');
-const timerBarFill = document.getElementById('timer-bar-fill');
+const currentIndex = localStorage.getItem('currentQuiz');
+const quizzes = JSON.parse(localStorage.getItem('quizzes')) || [];
+if(currentIndex===null || !quizzes[currentIndex]) { alert('Quiz não encontrado!'); window.location.href='index.html'; }
 
-let currentQuestionIndex = 0;
+const quiz = quizzes[currentIndex];
+const questionContainer = document.getElementById('question-container');
+const timerEl = document.getElementById('timer');
+const confettiEl = document.getElementById('confetti');
+
+let questionNumber = 0;
 let score = 0;
-let timeLeft = 20;
-let timerInterval;
+let timer;
 
-showQuestion();
+function startTimer(seconds){
+    timerEl.innerText = `Tempo: ${seconds}s`;
+    clearInterval(timer);
+    timer = setInterval(()=>{
+        seconds--;
+        timerEl.innerText = `Tempo: ${seconds}s`;
+        if(seconds<=0){ clearInterval(timer); nextQuestion(); }
+    },1000);
+}
 
 function showQuestion(){
-    resetState();
-    const q = quizData[currentQuestionIndex];
-    questionText.innerText = q.question;
+    if(questionNumber >= quiz.questions.length){
+        alert(`Quiz finalizado!\nPontuação: ${score}/${quiz.questions.length}`);
+        window.location.href='index.html';
+        return;
+    }
+    const q = quiz.questions[questionNumber];
+    questionContainer.innerHTML = `<div class="question-card"><h3>${q.question}</h3></div>`;
+    const qCard = questionContainer.querySelector('.question-card');
 
-    q.answers.forEach(answer => {
+    q.answers.forEach((ans,idx)=>{
         const btn = document.createElement('button');
-        btn.classList.add('card-btn');
-        btn.innerText = answer.text;
-        if(answer.correct) btn.dataset.correct = answer.correct;
-        btn.addEventListener('click', selectAnswer);
-        answerButtons.appendChild(btn);
+        btn.classList.add('answer-btn');
+        btn.innerText = ans.text;
+        btn.addEventListener('click',()=>{
+            clearInterval(timer);
+            if(ans.correct){
+                btn.classList.add('correct');
+                score++;
+                launchConfetti();
+                setTimeout(nextQuestion,800);
+            } else {
+                btn.classList.add('wrong');
+                if(confirm('Resposta errada!\nDeseja sair do quiz?')) window.location.href='index.html';
+                else setTimeout(nextQuestion,800);
+            }
+        });
+        qCard.appendChild(btn);
     });
-
-    timeLeft = 20;
-    updateTimerBar();
-    timerInterval = setInterval(()=>{
-        timeLeft -= 0.1;
-        updateTimerBar();
-        if(timeLeft <=0){
-            clearInterval(timerInterval);
-            disableButtons();
-            setTimeout(nextQuestion,500);
-        }
-    },100);
+    startTimer(15);
 }
 
-function updateTimerBar(){
-    timerBarFill.style.width = Math.max(0,(timeLeft/20)*100) + '%';
-    if(timeLeft <=5) timerBarFill.style.backgroundColor = '#dc3545';
-    else if(timeLeft <=10) timerBarFill.style.backgroundColor = '#ffc107';
-    else timerBarFill.style.backgroundColor = '#28a745';
+function nextQuestion(){ questionNumber++; showQuestion(); }
+
+function launchConfetti(){
+    // simples confetti visual
+    const confetti = document.createElement('div');
+    confetti.style.position='absolute';
+    confetti.style.width='10px';
+    confetti.style.height='10px';
+    confetti.style.background=['#f00','#0f0','#00f','#ff0','#f0f','#0ff'][Math.floor(Math.random()*6)];
+    confetti.style.top=Math.random()*window.innerHeight+'px';
+    confetti.style.left=Math.random()*window.innerWidth+'px';
+    confetti.style.borderRadius='50%';
+    confettiEl.appendChild(confetti);
+    setTimeout(()=>confetti.remove(),1000);
 }
 
-function resetState(){
-    clearInterval(timerInterval);
-    while(answerButtons.firstChild) answerButtons.removeChild(answerButtons.firstChild);
-}
-
-function selectAnswer(e){
-    clearInterval(timerInterval);
-    const correct = e.target.dataset.correct === "true";
-    if(correct) {
-        score += Math.floor(timeLeft*5);
-        showConfetti();
-    }
-    disableButtons();
-    setTimeout(nextQuestion,500);
-}
-
-function disableButtons(){
-    Array.from(answerButtons.children).forEach(btn=>{
-        btn.disabled=true;
-        if(btn.dataset.correct==="true"){
-            btn.classList.add('correct');
-        } else {
-            btn.classList.add('wrong');
-        }
-        btn.classList.add('card-animate');
-    });
-}
-
-function nextQuestion(){
-    quizQuestion.style.opacity = 0;
-    setTimeout(()=>{
-        currentQuestionIndex++;
-        if(currentQuestionIndex<quizData.length){
-            quizQuestion.style.opacity = 1;
-            showQuestion();
-        } else {
-            showResult();
-        }
-    },400);
-}
-
-function showResult(){
-    quizQuestion.style.display = 'none';
-    quizResult.style.display = 'block';
-    scoreText.innerText = `Sua pontuação: ${score}`;
-    const players = [
-        {name:"Alice", score:Math.floor(Math.random()*100)},
-        {name:"Bob", score:Math.floor(Math.random()*100)},
-        {name:"Você", score}
-    ];
-    players.sort((a,b)=>b.score-b.score);
-    rankingList.innerHTML = '';
-    players.forEach((p,idx)=>{
-        const li = document.createElement('li');
-        li.innerText = `${idx+1}. ${p.name} - ${p.score} pts`;
-        rankingList.appendChild(li);
-    });
-}
-
-restartBtn.addEventListener('click',()=>{
-    currentQuestionIndex=0;
-    score=0;
-    quizResult.style.display='none';
-    quizQuestion.style.display='block';
-    showQuestion();
-});
-
-function showConfetti(){
-    for(let i=0;i<50;i++){
-        const conf = document.createElement('div');
-        conf.classList.add('confetti');
-        conf.innerText='🎉';
-        conf.style.left=Math.random()*window.innerWidth+'px';
-        conf.style.fontSize=Math.random()*24+16+'px';
-        document.body.appendChild(conf);
-        setTimeout(()=>{ conf.remove(); },2000);
-    }
-}
+showQuestion();
 </script>
 </body>
 </html>

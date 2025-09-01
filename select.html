@@ -4,27 +4,68 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Selecionar Quiz - Quiz Master</title>
-<link rel="stylesheet" href="style.css">
+<style>
+body { font-family:'Poppins',sans-serif; margin:0; padding:0; background:#f0f4f8; }
+header { background:#4a90e2; color:#fff; padding:20px; text-align:center; font-size:28px; font-weight:600; }
+main { padding:20px; display:flex; flex-direction:column; align-items:center; gap:15px; }
+.quiz-card { background:#fff; width:90%; max-width:600px; padding:20px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.2); display:flex; justify-content:space-between; align-items:center; }
+.quiz-info { display:flex; flex-direction:column; }
+.quiz-info strong { font-size:18px; }
+.quiz-info small { font-size:12px; color:#555; }
+button { padding:8px 15px; border:none; border-radius:8px; cursor:pointer; font-weight:600; transition:0.3s; }
+.play-btn { background:#28a745; color:#fff; }
+.play-btn:hover { background:#218838; }
+.remove-btn { background:#ff3b2d; color:#fff; margin-left:10px; }
+.remove-btn:hover { background:#e12b1c; }
+</style>
 </head>
 <body>
-<header>
-    <div class="logo">Quiz Master</div>
-    <nav>
-        <a href="index.html" class="nav-btn">Voltar</a>
-    </nav>
-</header>
+<header>Selecionar Quiz</header>
+<main id="quiz-list"></main>
 
-<main>
-<section class="create-quiz-container">
-    <h2>Escolha um Quiz</h2>
-    <ul id="quiz-list"></ul>
-</section>
-</main>
+<script>
+const quizList = document.getElementById('quiz-list');
 
-<footer>
-<p>© 2025 Quiz Master. Todos os direitos reservados.</p>
-</footer>
+function loadQuizzes() {
+    const quizzes = JSON.parse(localStorage.getItem('quizzes')) || [];
+    quizList.innerHTML = '';
+    if(quizzes.length === 0){
+        quizList.innerHTML = '<p>Nenhum quiz salvo ainda.</p>';
+        return;
+    }
+    quizzes.forEach((quiz, index) => {
+        const card = document.createElement('div');
+        card.classList.add('quiz-card');
+        card.innerHTML = `
+            <div class="quiz-info">
+                <strong>${quiz.name}</strong>
+                <small>${quiz.date}</small>
+            </div>
+            <div>
+                <button class="play-btn">Jogar</button>
+                <button class="remove-btn">Remover</button>
+            </div>
+        `;
+        quizList.appendChild(card);
 
-<script src="select.js"></script>
+        // Jogar quiz
+        card.querySelector('.play-btn').addEventListener('click', () => {
+            localStorage.setItem('currentQuiz', index);
+            window.location.href = 'play-visual.html';
+        });
+
+        // Remover quiz
+        card.querySelector('.remove-btn').addEventListener('click', () => {
+            if(confirm(`Remover o quiz "${quiz.name}"?`)){
+                quizzes.splice(index,1);
+                localStorage.setItem('quizzes', JSON.stringify(quizzes));
+                loadQuizzes();
+            }
+        });
+    });
+}
+
+loadQuizzes();
+</script>
 </body>
 </html>

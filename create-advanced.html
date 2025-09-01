@@ -4,14 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Criar Quiz - Quiz Master</title>
-<link rel="stylesheet" href="style.css">
+<style>
+body { font-family:'Poppins', sans-serif; margin:0; padding:0; background:#f0f4f8; }
+header, footer { background:#4a90e2; color:#fff; padding:10px 20px; text-align:center; font-weight:600; }
+.logo { font-size:28px; }
+.create-quiz-container { max-width:700px; margin:40px auto; padding:20px; background:#fff; border-radius:15px; box-shadow:0 8px 20px rgba(0,0,0,0.2); }
+.create-quiz-container h2 { text-align:center; margin-bottom:20px; }
+#create-quiz-form input[type="text"] { width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc; font-size:16px; }
+.question-block { background:linear-gradient(135deg,#6a11cb,#2575fc); color:#fff; padding:20px; border-radius:12px; margin-bottom:15px; position:relative; animation:fadeIn 0.5s forwards; }
+.question-block input[type="text"] { width:100%; padding:10px; margin:5px 0; border-radius:6px; border:none; font-size:15px; }
+.question-block select { width:100%; padding:10px; border-radius:6px; border:none; font-size:15px; margin-bottom:10px; }
+.answers-container { display:flex; flex-direction:column; gap:5px; margin-bottom:10px; }
+.remove-question-btn { position:absolute; top:10px; right:10px; background:#ff3b2d; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; color:#fff; font-weight:600; }
+.card-btn { background:#28a745; color:#fff; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:600; transition:0.3s; margin-top:10px; }
+.card-btn:hover { background:#218838; transform:scale(1.05); }
+.card-animate { opacity:0; transform:translateY(20px); animation:fadeIn 0.5s forwards; }
+.hide { display:none; }
+@keyframes fadeIn { to { opacity:1; transform:translateY(0); } }
+</style>
 </head>
 <body>
 <header>
     <div class="logo">Quiz Master</div>
-    <nav>
-        <a href="index.html" class="nav-btn">Voltar</a>
-    </nav>
 </header>
 
 <main>
@@ -30,6 +44,81 @@
 <p>© 2025 Quiz Master. Todos os direitos reservados.</p>
 </footer>
 
-<script src="create-advanced.js"></script>
+<script>
+const addQuestionBtn = document.getElementById('add-question-btn');
+const questionsContainer = document.getElementById('questions-container');
+const quizForm = document.getElementById('quiz-form');
+let questionCount = 0;
+
+function createQuestionBlock() {
+    questionCount++;
+    const block = document.createElement('div');
+    block.classList.add('question-block');
+    block.dataset.id = questionCount;
+
+    block.innerHTML = `
+        <label>Pergunta ${questionCount}:</label>
+        <input type="text" placeholder="Digite a pergunta" required>
+        <select class="question-type">
+            <option value="multiple">Múltipla Escolha</option>
+            <option value="truefalse">Verdadeiro/Falso</option>
+        </select>
+        <div class="answers-container multiple">
+            <div class="answer-input"><input type="text" placeholder="Resposta 1" required><input type="radio" name="correct-${questionCount}" required></div>
+            <div class="answer-input"><input type="text" placeholder="Resposta 2" required><input type="radio" name="correct-${questionCount}" required></div>
+            <div class="answer-input"><input type="text" placeholder="Resposta 3"><input type="radio" name="correct-${questionCount}"></div>
+            <div class="answer-input"><input type="text" placeholder="Resposta 4"><input type="radio" name="correct-${questionCount}"></div>
+        </div>
+        <div class="answers-container truefalse hide">
+            <div class="answer-input"><input type="radio" name="tf-${questionCount}" value="true"> Verdadeiro</div>
+            <div class="answer-input"><input type="radio" name="tf-${questionCount}" value="false"> Falso</div>
+        </div>
+        <button type="button" class="remove-question-btn">Remover</button>
+    `;
+    questionsContainer.appendChild(block);
+
+    const selectType = block.querySelector('.question-type');
+    selectType.addEventListener('change', () => {
+        block.querySelector('.multiple').classList.toggle('hide', selectType.value === 'truefalse');
+        block.querySelector('.truefalse').classList.toggle('hide', selectType.value !== 'truefalse');
+    });
+
+    block.querySelector('.remove-question-btn').addEventListener('click', () => {
+        block.remove();
+    });
+}
+
+addQuestionBtn.addEventListener('click', createQuestionBlock);
+
+quizForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const quizName = document.getElementById('quiz-name').value;
+    const questions = [];
+    document.querySelectorAll('.question-block').forEach(block => {
+        const questionText = block.querySelector('input[type="text"]').value;
+        const type = block.querySelector('.question-type').value;
+        let answers = [];
+        if(type==="multiple"){
+            const radios = block.querySelectorAll('input[type="radio"]');
+            block.querySelectorAll('.answer-input input[type="text"]').forEach((ans, idx) => {
+                if(ans.value.trim()!==''){
+                    answers.push({text:ans.value, correct: radios[idx].checked});
+                }
+            });
+        } else {
+            const selected = block.querySelector('input[type="radio"]:checked');
+            if(selected) answers.push({text:selected.value, correct:selected.value==="true"});
+        }
+        questions.push({question:questionText, type, answers});
+    });
+    const savedQuizzes = JSON.parse(localStorage.getItem('quizzes')) || [];
+    savedQuizzes.push({name:quizName, date:new Date().toLocaleString(), questions});
+    localStorage.setItem('quizzes', JSON.stringify(savedQuizzes));
+    alert('Quiz salvo com sucesso!');
+    window.location.href='index.html';
+});
+
+createQuestionBlock();
+</script>
 </body>
 </html>
